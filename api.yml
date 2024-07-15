@@ -1,0 +1,1068 @@
+openapi: 3.0.0
+info:
+  title: API Server
+  version: 1.0.0
+  description: API server endpoints based on the provided table
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        position:
+          type: string
+        affiliation:
+          type: string
+        country:
+          type: string
+        state:
+          type: string
+        city:
+          type: string
+        preferred_language:
+          type: string
+        languages_spoken:
+          type: array
+          items:
+            type: string
+          description: List of languages spoken by the user
+        oauth:
+          type: object
+          properties:
+            orcid:
+              type: object
+              description: TODO
+            google:
+              type: object
+              description: TODO
+      required:
+        - first_name
+        - last_name
+        - country
+        - preferred_language
+    Community:
+      type: object
+      properties:
+        community_name:
+          type: string
+        entity:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        description:
+          type: string
+      required:
+        - community_name
+        - entity
+        - description
+        - country
+    #    CommunityWithContact:
+    #      allOf:
+    #        - $ref: '#/components/schemas/Community'
+    #        - type: object
+    #          properties:
+    #            contact_name:
+    #              type: string
+    #            contact_email:
+    #              type: string
+    #              format: email
+    #          required:
+    #            - contact_name
+    #            - contact_email
+    Institution:
+      type: object
+      properties:
+        institution_name:
+          type: string
+        entity:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        description:
+          type: string
+    InstitutionWithContact:
+      allOf:
+        - $ref: '#/components/schemas/Institution'
+        - type: object
+          properties:
+            contact_name:
+              type: string
+            contact_email:
+              type: string
+              format: email
+          required:
+            - contact_name
+            - contact_email
+    Researcher:
+      type: object
+      properties:
+        institution:
+          type: string
+        description:
+          type: string
+        orcid:
+          type: string
+      required:
+        - institution
+        - description
+    ProjectListItem:
+      type: object
+      properties:
+        unique_id:
+          type: string
+          description: The unique_id of a Project or Label.
+        providers_id:
+          type: string
+          nullable: true
+          description: The provider_id for a Project (usually an external identifier separate from the unique_id in the Hub). If no provider id was added, then the data type will be NULL.
+        title:
+          type: string
+          description: The title of a Project.
+        project_privacy:
+          type: string
+          enum: [ Public, Discoverable ]
+          description: The privacy setting set for a Project (either Public or Discoverable). If the privacy setting for a Project is set to Private in the Hub, it will not show in the API.
+        date_added:
+          type: string
+          format: date-time
+          description: The date a Project was created in the Hub.
+        date_modified:
+          type: string
+          format: date-time
+          description: The date a Project was modified. If a Project was never modified, the date will be the same as date_added.
+      required:
+        - unique_id
+        - title
+        - project_privacy
+        - date_added
+        - date_modified
+    Project:
+      type: object
+      properties:
+        project_type:
+          type: string
+          enum:
+            - item
+            - collection
+            - samples
+            - expedition
+            - publication
+            - exhibition
+            - other
+        other_project_type:
+          type: string
+        project_notices:
+          type: array
+          items:
+            type: string
+            description: TODO maybe reference to component with complete list?
+            enum:
+              - traditional_knowledge_notice
+              - biocultural_notice
+              - attribution_incomplete_notice
+        title:
+          type: string
+        description:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+        contact_name:
+          type: string
+        contact_email:
+          type: string
+        contributors:
+          type: array
+          items:
+            type: integer
+        provide_id:
+          type: string
+        project_data_guid:
+          type: string
+        project_doi:
+          type: string
+        visibility:
+          type: string
+          enum: [ public, discoverable, private ]
+      required:
+        - project_type
+        - title
+        - description
+        - contact_name
+        - contact_email
+        - contributors
+        - project_data_guid
+        - project_doi
+        - visibility
+    RegistryListItem:
+      type: object
+      properties:
+        name:
+          type: string
+        account_type:
+          type: string
+          enum:
+            - community
+            - institution
+            - researcher
+        account_id:
+          type: integer
+        image_url:
+          type: string
+          format: url
+        description:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        members:
+          type: integer
+      required:
+        - name
+        - account_id
+        - account_type
+        - image_url
+        - description
+    Label:
+      type: object
+      properties:
+        label:
+          type: string
+        local_name:
+          type: string
+        language:
+          type: string
+        label_text:
+          type: string
+        translations:
+          type: array
+          items:
+            type: object
+            properties:
+              local_name:
+                type: string
+              language:
+                type: string
+              label_text:
+                type: string
+    EmptyResponse:
+      type: object
+paths:
+  /login:
+    post:
+      summary: User login
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful login; TODO maybe profile data
+  /logout:
+    get:
+      summary: User logout
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Successful login
+  /recaptcha:
+    get:
+      summary: Get reCAPTCHA for registration
+      operationId: getRegisterRecaptcha
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  /register:
+    post:
+      summary: Initialize registration
+      operationId: initializeRegistration
+      description: 'TODO: ASHLEY, FOR OAUTH REGISTRATION, THIS IS NOT NEEDED, CORRECT?'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+                  format: email
+              required:
+                - username
+                - password
+                - email
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  /resend-verification-email:
+    get:
+      summary: Resend verification email
+      operationId: resendVerificationEmail
+      responses:
+        '200':
+          description: verification email request sent
+  /profile:
+    get:
+      summary: Get user profile
+      operationId: getProfileAccounts
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    post:
+      summary: Create user profile
+      operationId: createUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                position:
+                  type: string
+                affiliation:
+                  type: string
+                country:
+                  type: string
+                state:
+                  type: string
+                city:
+                  type: string
+                preferred_language:
+                  type: string
+                languages_spoken:
+                  type: array
+                  items:
+                    type: string
+                  description: List of languages spoken by the user
+                oauth:
+                  type: object
+                  properties:
+                    orcid:
+                      type: object
+                      description: TODO
+                    google:
+                      type: object
+                      description: TODO
+
+              required:
+                - first_name
+                - last_name
+                - country
+                - preferred_language
+      responses:
+        '200':
+          description: User profile created successfully
+    put:
+      summary: Edit user profile
+      operationId: editUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                position:
+                  type: string
+                affiliation:
+                  type: string
+                country:
+                  type: string
+                state:
+                  type: string
+                city:
+                  type: string
+                preferred_language:
+                  type: string
+                languages_spoken:
+                  type: array
+                  items:
+                    type: string
+                  description: List of languages spoken by the user
+      responses:
+        '200':
+          description: User profile updated successfully
+  /community:
+    post:
+      summary: Create community account
+      description: TODO Ashley, please check the required fields
+      operationId: createCommunityAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Community'
+      responses:
+        '200':
+          description: Community account created successfully
+    put:
+      summary: Update account settings
+      operationId: updateAccountSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Community'
+      responses:
+        '200':
+          description: Account settings updated successfully
+  /community/native-land-boundaries:
+    post:
+      summary: Add native land boundaries to community account
+      operationId: addNativeLandBoundaries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                community_id:
+                  type: string
+              required:
+                - community_id
+      responses:
+        '200':
+          description: Native land boundaries added successfully
+    get:
+      summary: get native land boundaries to community account
+      description: TODO could also be part of profile itself
+      responses:
+        '200':
+          description: TODO, community_id, other metadata
+  /community/shapefile-boundary:
+    post:
+      summary: Upload community boundary shapefile
+      operationId: uploadCommunityBoundaryShapefile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Shapefile boundary uploaded successfully
+    get:
+      summary: Download community boundary shapefile
+      responses:
+        '200':
+          description: TODO, the shape-file
+  #  /community/confirmation_contact:
+  #    post:
+  #      summary: Add community confirmation contact
+  #      operationId: addCommunityConfirmationContact
+  #      requestBody:
+  #        required: true
+  #        content:
+  #          application/json:
+  #            schema:
+  #              type: object
+  #              properties:
+  #                name:
+  #                  type: string
+  #                email:
+  #                  type: string
+  #                  format: email
+  #              required:
+  #                - name
+  #                - email
+  #      responses:
+  #        '200':
+  #          description: Community confirmation contact added successfully
+  /institution:
+    post:
+      summary: Create institution account
+      operationId: createInstitutionAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Institution'
+      responses:
+        '200':
+          description: Institution account created successfully
+    put:
+      summary: Update account settings
+      operationId: updateAccountSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                country:
+                  type: string
+                description:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Institution account settings updated successfully
+  #  /institution/confirmation-contact:
+  #    post:
+  #      summary: Add institution confirmation contact
+  #      operationId: addInstitutionConfirmationContact
+  #      description:
+  #      requestBody:
+  #        required: true
+  #        content:
+  #          application/json:
+  #            schema:
+  #              type: object
+  #              properties:
+  #                name:
+  #                  type: string
+  #                email:
+  #                  type: string
+  #                  format: email
+  #              required:
+  #                - name
+  #                - email
+  #      responses:
+  #        '200':
+  #          content:
+  #            application/json:
+  #              schema:
+  #                 $ref: '#/components/schemas/EmptyResponse'
+  #          description: Institution confirmation contact added successfully
+  /researcher:
+    post:
+      summary: Create researcher account
+      operationId: createResearcherAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Researcher"
+      responses:
+        '200':
+          description: Researcher account created successfully
+    put:
+      summary: Update account settings
+      operationId: updateAccountSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Researcher"
+      responses:
+        '200':
+          description: Researcher account settings updated successfully
+  /institution/join-search:
+    get:
+      summary: Search for institution to join
+      operationId: searchInstitution
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          required: true
+          description: Search query for institutions
+      responses:
+        '200':
+          description: Institution search results retrieved successfully
+  /institution/join-request:
+    post:
+      summary: Request to join an institution
+      operationId: requestJoinInstitution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+              required:
+                - id
+      responses:
+        '200':
+          description: Join request sent successfully
+  /community/join-search:
+    get:
+      summary: Search for community to join
+      operationId: searchCommunity
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          required: true
+          description: Search query for communities
+      responses:
+        '200':
+          description: Community search results retrieved successfully
+  /community/join-request:
+    post:
+      summary: Request to join a community
+      operationId: requestJoinCommunity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+              required:
+                - id
+      responses:
+        '200':
+          description: Join request sent successfully
+  /registry:
+    get:
+      summary: Get registry
+      operationId: getRegistry
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: object
+          description: Filter criteria for registry
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                  previous:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RegistryListItem'
+          description: Registry retrieved successfully
+  /account/{id}/leave-account:
+    post:
+      summary: Leave an account
+      operationId: leaveAccount
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Account left successfully
+  /profile/update-password:
+    post:
+      summary: Update profile password
+      operationId: updateProfilePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+              required:
+                - old_password
+                - new_password
+      responses:
+        '200':
+          description: Password updated successfully
+  /deactivate-account:
+    post:
+      summary: Deactivate account
+      description: TODO I have not found this in the sandbox
+      operationId: deactivateAccount
+      responses:
+        '200':
+          description: Account deactivated successfully
+  /account/{id}/photo:
+    post:
+      summary: Upload account photo
+      operationId: uploadAccountPhoto
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Photo uploaded successfully
+    delete:
+      summary: Remove photo
+      operationId: removeAccountPhoto
+      parameters:
+        - name: id
+          in: path
+          required: true
+      responses:
+        '200':
+          description: Photo removed successfully
+  /researcher/{id}/remove-orcid:
+    post:
+      summary: Remove ORCID from researcher account
+      operationId: removeResearcherORCID
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: ORCID removed successfully
+  /account/{id}/notifications:
+    get:
+      summary: Get account notifications
+      operationId: getAccountNotifications
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: TODO NOT SURE YET. id, type, text, link??
+          description: Account notifications retrieved successfully
+  /account/{id}/notifications-mark-read:
+    post:
+      summary: Mark account notifications as read
+      operationId: markAccountNotificationsRead
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Notifications marked as read successfully
+  /labels:
+    post:
+      summary: Create custom label
+      operationId: createCustomLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Label'
+      responses:
+        '200':
+          description: Custom label created successfully
+    put:
+      summary: Update custom label
+      operationId: updateCustomLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Label'
+      responses:
+        '200':
+          description: Custom label updated successfully
+  /labels/audio:
+    post:
+      summary: Upload label audio
+      operationId: uploadLabelAudio
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                description: maybe the url
+          description: Label audio uploaded successfully
+  /projects:
+    get:
+      summary: Get project board
+      operationId: getProjectBoard
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Filter criteria for project board
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                  previous:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectListItem'
+          description: Project board retrieved successfully
+  /project/{uuid}:
+    parameters:
+      - name: uuid
+        in: path
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Create project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '200':
+          description: Project created successfully
+    put:
+      summary: Edit a project
+      operationId: editProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '200':
+          description: Edit successful
+    delete:
+      summary: delete a project
+      responses:
+        '200':
+          description: Project deleted
+
+  /projects/{uuid}/notify-communities:
+    post:
+      summary: Notify communities about a project
+      operationId: notifyCommunitiesAboutProject
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+          description: Project UUID
+      responses:
+        '200':
+          description: Communities notified successfully
+  /project/{uuid}/member:
+    post:
+      summary: Add project member
+      operationId: addProjectMember
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+          description: Project UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                role:
+                  type: string
+              required:
+                - id
+                - role
+      responses:
+        '200':
+          description: Project member added successfully
+    put:
+      summary: Edit project member
+      operationId: editProjectMember
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+          description: Project UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                role:
+                  type: string
+              required:
+                - id
+                - role
+      responses:
+        '200':
+          description: Project member edited successfully
+    delete:
+      summary: Remove project member
+      operationId: removeProjectMember
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+          description: Project UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+              required:
+                - id
+      responses:
+        '200':
+          description: Project member removed successfully
+  /project/member-request:
+    post:
+      summary: Handle project member request
+      operationId: handleProjectMemberRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accept:
+                  type: boolean
+                reason:
+                  type: string
+                role:
+                  type: string
+              required:
+                - accept
+                - role
+      responses:
+        '200':
+          description: Project member request handled successfully
+
