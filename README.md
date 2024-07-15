@@ -10,6 +10,3 @@ https://localcontextshub.org/
 
 Hub Api guidelines
 https://localcontexts.org/support/api-guide/#project-results
-
-
-15. July
